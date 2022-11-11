@@ -1,64 +1,167 @@
-# 人生就是一个不断学习的过程
+## 串口发送/接收函数
 
-人生就是一个不断学习的过程，通过学习来充实自己的头脑，让自己更有智慧的生活下去，去探索那未知领域的神秘，去享受成长带来的快乐和惬意。
+```
+HAL_UART_Transmit();串口发送数据，使用超时管理机制
+HAL_UART_Receive();串口接收数据，使用超时管理机制
+HAL_UART_Transmit_IT();串口中断模式发送
+HAL_UART_Receive_IT();串口中断模式接收
+HAL_UART_Transmit_DMA();串口DMA模式发送
+HAL_UART_Transmit_DMA();串口DMA模式接收
+```
 
-![](qrcode_for_gh_0d3e241c6f10_258.jpg)
+#### 串口发送数据
 
-# 关于 blog-demos 代码仓库
+```
+HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout)
+```
 
-1. Github地址：[https://github.com/gozhuyinglong/blog-demos](https://github.com/gozhuyinglong/blog-demos/)
-2. Gitee地址：[https://gitee.com/gozhuyinglong/blog-demos](https://gitee.com/gozhuyinglong/blog-demos)
-3. 这个代码仓库里是博客中涉及的源码、文件等
-4. 如果对您有帮助，欢迎给个**Star**，感谢~~
+- **串口扫描接收数据**
 
-## 数据结构与算法
+```
+uint8_t data=0;
+while (1)
+{
+    //串口接收数据
+    if(HAL_UART_Receive(&huart1,&data,1,0)==HAL_OK){
+            //将接收的数据发送
+             HAL_UART_Transmit(&huart1,&data,1,0);
+        }
+}
 
-* [数组](https://mp.weixin.qq.com/s/YVbahU_0fzmyEX-JBvcnqQ)
-* [稀疏数组](https://mp.weixin.qq.com/s/YYemaomm10HiKs9MoKHKIw)
-* [链表（单链表、双链表、环形链表）](https://mp.weixin.qq.com/s/46ShChMslDGsV6xSObh5nQ)
-* [栈](https://mp.weixin.qq.com/s/dfv4WM_-agLpygCuzqQUTA)
-* [队列](https://mp.weixin.qq.com/s/64oTQJatNcBsfvrJKMQOWA)
-* [树](https://mp.weixin.qq.com/s/Ui5p4RQRwEHv4a_HWeXJYQ)
-* [二叉树](https://mp.weixin.qq.com/s/XkeEyUCCvQ_AtMLBUYTH0Q)
-* [二叉查找树（BST）](https://mp.weixin.qq.com/s/6S8M6r-EY4IMF3UUvZ7_AA)
-* [AVL树（平衡二叉树）](https://mp.weixin.qq.com/s/eeXi_11illdVqMnkse_mhQ)
-* [B树](https://mp.weixin.qq.com/s/Cx03l-ezvYjAKrmedup-aQ)
-* [散列表（哈希表）](https://mp.weixin.qq.com/s/oX28uyCbbaYQErT6RE-txg)
+```
 
-## 设计模式
+#### 中断接收数据
 
-* [单例模式](https://mp.weixin.qq.com/s/bb2LhnCDUZfprHwLtAK18Q)
-* [简单工厂模式](https://mp.weixin.qq.com/s/tS_m1_8E0wn24UNkHTXeug)
-* [工厂方法模式](https://mp.weixin.qq.com/s/vGoPrfAUFIoe7MJKGhZ9WQ)
-* [策略模式](https://mp.weixin.qq.com/s/FfhMIrD72vBWTGJe5yJzxw)
+```
+HAL_UART_Receive_IT(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size)
+```
 
-## 码农工具箱
+- 大致过程是，设置数据存放位置，接收数据长度，然后使能串口接收中断。接收到数据时，会触发串口中断。
+  再然后，串口中断函数处理，直到接收到指定长度数据，而后关闭中断，进入中断接收回调函数，不再触发接收中断。(只触发一次中断)
 
-* [教你使用GitHub搭建个人网站](https://mp.weixin.qq.com/s/fFP3sk8gaeG10dfZdPj4bQ)
-* [如何将代码同时提交到Github和码云Gitee上](https://mp.weixin.qq.com/s/7xvtYbW_U73QbAVW_4wCSw)
-* [80行Python代码搞定全国区划代码](https://mp.weixin.qq.com/s/RrryeSKCAwD61NHfjaFOrA)
+**_2. 串口中断函数_**
 
-## Java系列
+```
+HAL_UART_IRQHandler(UART_HandleTypeDef *huart);  //串口中断处理函数
+HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart);  //串口发送中断回调函数
+HAL_UART_TxHalfCpltCallback(UART_HandleTypeDef *huart);  //串口发送一半中断回调函数（用的较少）
+HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);  //串口接收中断回调函数
+HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart);//串口接收一半回调函数（用的较少）
+HAL_UART_ErrorCallback();串口接收错误函数
 
-* [Java反射机制：跟着代码学反射](https://mp.weixin.qq.com/s/-JfevVj0xVHBAZ_AgowZAQ)
-* [JDK动态代理：不仅要学会用，更要掌握其原理](https://mp.weixin.qq.com/s/0M7ENqhZ2IjmPeFbf_vEqQ)
+```
 
-## Spring系列
+**_3. 串口接收中断回调函数_**
 
-* [@Import注解：导入配置类的四种方式&源码解析](https://mp.weixin.qq.com/s/DcWEo6-7-W1yFpEdkcwIJQ)
+```
+HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
+```
 
-## SpringBoot系列
+- 功能: HAL 库中断进行后,不会直接退出,而是进入到该中断回调函数,用户可以在中设置代码,`串口中断接收后,进入该函数`.
 
-* [Spring Boot 自动配置原理](https://mp.weixin.qq.com/s/UXNcTOpjx9cr4kd4ECPg6g)
-* [Spring Data Redis 是如何在 Jedis 和 Lettuce 之间切换的？](https://mp.weixin.qq.com/s/Dymb63z5DY7IAlOFeA82iQ)
+**_4. 串口中断处理函数_**
 
-## Netty系列
+```
+HAL_UART_IRQHandler(UART_HandleTypeDef *huart);
+```
 
-* [75张图带你了解网络设备、网络地址规划、静态路由、实战演练](https://mp.weixin.qq.com/s/9McysTuIFQ984Asy2FxB9g)
-* [36张图详解网络基础知识](https://mp.weixin.qq.com/s/H7FQXsPxtHcYUzK-cHBo9g)
-* [浅聊Linux的五种IO模型](https://mp.weixin.qq.com/s/IrY6u8CIkYN2Rv-kKeMtMA)
+- 功能:对接收数据进行判断,(判断是发送中断还是接收中断),然后进行数据的发送和接受,在终端函数中使用该函数.
 
-## 信息安全
+- **接收数据**
 
-* [一文搞懂单向散列函数](https://mp.weixin.qq.com/s/LrhMAXfxhnlPLxv9B_39sg)
-* [一文搞懂对称加密：加密算法、工作模式、填充方式、代码实现](https://mp.weixin.qq.com/s/Jr3aKhd9NEIZ7quWmBJAow)
+```
+ /* UART in mode Receiver ---------------------------------------------------*/
+  if((tmp_flag != RESET) && (tmp_it_source != RESET))
+  {
+    UART_Receive_IT(huart);
+  }
+```
+
+- **发送数据**
+
+```
+  /* UART in mode Transmitter ------------------------------------------------*/
+  if (((isrflags & USART_SR_TXE) != RESET) && ((cr1its & USART_CR1_TXEIE) != RESET))
+  {
+    UART_Transmit_IT(huart);
+    return;
+  }
+```
+
+**_5. 串口查询函数_**
+HAL_UART_GetState(); 判断 UART 的接收是否结束，或者发送数据是否忙碌
+
+```
+while(HAL_UART_GetState(&huart4) == HAL_UART_STATE_BUSY_TX)   //检测UART发送结束
+```
+
+#### 重写 printf 函数
+
+- _#include<stdio.h>_
+
+```
+/**
+  * 函数功能: 重定向c库函数printf到DEBUG_USARTx
+  * 输入参数: 无
+  * 返 回 值: 无
+  * 说    明：无
+  */
+int fputc(int ch, FILE *f)
+{
+  HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 0xffff);
+  return ch;
+}
+
+/**
+  * 函数功能: 重定向c库函数getchar,scanf到DEBUG_USARTx
+  * 输入参数: 无
+  * 返 回 值: 无
+  * 说    明：无
+  */
+int fgetc(FILE *f)
+{
+  uint8_t ch = 0;
+  HAL_UART_Receive(&huart1, &ch, 1, 0xffff);
+  return ch;
+}
+```
+
+```flow
+   start=>start: HAL_UART_Receive_IT(中断接收函数)
+   a=>operation: USART2_IRQHandler(void)(中断服务函数)
+   b=>operation: HAL_UART_IRQHandler(UART_HandleTypeDef *huart)(中断处理函数)
+   c=>operation: UART_Receive_IT(UART_HandleTypeDef *huart) (接收函数)
+   d=>end: HAL_UART_RxCpltCallback(huart);(中断回调函数)
+   start->a->b->c->d
+```
+
+**代码:**
+
+```
+//在main函数中先调用一次接收中断函数,配置相关标志位
+HAL_UART_Receive_IT(&huart1, (uint8_t *)&aRxBuffer, 1);
+```
+
+#### DMA 串口接收
+
+- 当 DMA 串口开始接收后，DMA 通道会不断的将发送的数据转移到内存。
+
+```flow
+    start=>start: 1开始串口DMA接收
+    a=>operation: 2串口收到数据,DMA将数据传输给内存
+    b=>operation: 3一帧数据发送完毕,串口暂时空闲,出发串口空闲中断
+    c=>operation: 4在中断服务函数中,可以计算刚才收到了多少个字节的数据
+    end=>end: 5储存接收到的数据,清除标志位,开始下一帧数据接收
+    start->a->b->c->end
+```
+---
+  ```mermaid
+  graph TB
+    st(start)-->op[aition]
+    op-->co{yes/no}
+    co--no-->sub(function)
+    sub-->op
+    co--yes-->out>out]
+    out-->en(stop)
+
+
